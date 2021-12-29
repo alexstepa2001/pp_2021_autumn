@@ -151,7 +151,7 @@ std::vector<int> createHullComponent(std::vector<int> points,
 }
 
 std::vector<std::vector<int>> createHullImageParallel(const std::vector<int>& image,
-    std::size_t count_rows, std::size_t count_columns) {  
+    std::size_t count_rows, std::size_t count_columns) {
     int size, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -189,7 +189,8 @@ std::vector<std::vector<int>> createHullImageParallel(const std::vector<int>& im
             MPI_Recv(&count_points, 1, MPI_INT, 0, i * 2, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
 
             local_components[i].resize(count_points);
-            MPI_Recv(local_components[i].data(), count_points, MPI_INT, 0, i * 2 + 1, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+            MPI_Recv(local_components[i].data(), count_points, MPI_INT, 0, i * 2 + 1,
+                MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
         }
     }
 
