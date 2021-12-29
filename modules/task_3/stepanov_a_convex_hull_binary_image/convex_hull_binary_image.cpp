@@ -196,7 +196,7 @@ std::vector<std::vector<int>> createHullImageParallel(const std::vector<int>& im
 
     std::vector<std::vector<int>> local_hulls;
     int count_points = 0;
-    for (std::size_t i = 0; i < static_cast<int>(local_size + remains); i++) {
+    for (std::size_t i = 0; i < static_cast<std::size_t>(local_size + remains); i++) {
             local_hulls.push_back(createHullComponent(local_components[i], count_rows, count_columns));
             count_points += (local_hulls[i].size() + 1);
     }
@@ -206,7 +206,7 @@ std::vector<std::vector<int>> createHullImageParallel(const std::vector<int>& im
 
     std::vector<int> local_hulls_points(max_count_point, -1);
     std::size_t index = 0;
-    for (std::size_t i = 0; i < static_cast<int>(local_size + remains); i++) {
+    for (std::size_t i = 0; i < static_cast<std::size_t>(local_size + remains); i++) {
         for (std::size_t j = 0; j < local_hulls[i].size(); j++) {
             local_hulls_points[index++] = local_hulls[i][j];
         }
