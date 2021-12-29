@@ -5,18 +5,29 @@
 #include <gtest-mpi-listener.hpp>
 
 
-TEST(GENERATE_IMAGE, can_generate_random_binary_image) {
+TEST(GENERATE_IMAGE, can_generate_square_binary_image) {
     std::vector<int> image(10 * 10);
-    ASSERT_NO_THROW(generateBinaryImage(&image, 10));
+    ASSERT_NO_THROW(generateBinaryImage(&image, 10, 10));
 }
 
-TEST(MARKING_COMPONENTS, can_marking_components_image) {
-    std::vector<int> image(10 * 10);
-    generateBinaryImage(&image, 10);
-    ASSERT_NO_THROW(markingComponents(&image, 10));
+TEST(GENERATE_IMAGE, can_generate_rectangular_binary_image) {
+    std::vector<int> image(10 * 20);
+    ASSERT_NO_THROW(generateBinaryImage(&image, 10, 20));
 }
 
-TEST(MARKING_COMPONENTS, marking_components_correct_marking) {
+TEST(MARKING_COMPONENTS, can_marking_components_square_image) {
+    std::vector<int> image(10 * 10);
+    generateBinaryImage(&image, 10, 10);
+    ASSERT_NO_THROW(markingComponents(&image, 10, 10));
+}
+
+TEST(MARKING_COMPONENTS, can_marking_components_rectangular_image) {
+    std::vector<int> image(10 * 10);
+    generateBinaryImage(&image, 10, 10);
+    ASSERT_NO_THROW(markingComponents(&image, 10, 10));
+}
+
+TEST(MARKING_COMPONENTS, marking_components_correct_works_in_squre_image) {
     std::vector<int> image = { 1, 0, 1, 1,
                                0, 0, 1, 1,
                                1, 0, 0, 0,
@@ -25,42 +36,42 @@ TEST(MARKING_COMPONENTS, marking_components_correct_marking) {
                                                0, 0, 3, 3,
                                                4, 0, 0, 0,
                                                4, 4, 4, 4 };
-    markingComponents(&image, 4);
+    markingComponents(&image, 4, 4);
     EXPECT_EQ(image, expected_marking_image);
 }
 
-TEST(MARKING_COMPONENTS, marking_components_correct_insert_pixel_in_components) {
+TEST(MARKING_COMPONENTS, marking_components_correct_works_in_rectangular_image) {
     std::vector<int> image = { 1, 0, 1, 1,
                                0, 0, 1, 1,
-                               1, 0, 0, 0,
                                1, 1, 1, 1 };
-    std::vector<std::vector<int>> expected_components(3, std::vector<int>{});
-    expected_components[0] = { 0 };
-    expected_components[1] = { 2, 6, 7, 3 };
-    expected_components[2] = { 8, 12, 13, 14, 15 };
-
-    auto components = markingComponents(&image, 4);
-
-    for (std::size_t i = 0; i < 3; i++) {
-        EXPECT_EQ(expected_components[i], components[i]);
-    }
+    std::vector<int> expected_marking_image = { 2, 0, 3, 3,
+                                               0, 0, 3, 3,
+                                               3, 3, 3, 3 };
+    markingComponents(&image, 3, 4);
+    EXPECT_EQ(image, expected_marking_image);
 }
 
-TEST(CREATE_HULL_SEQUENTIAL, can_create_hull) {
+TEST(CREATE_HULL_SEQUENTIAL, can_create_hull_squre_image) {
     std::vector<int> image(10 * 10);
-    generateBinaryImage(&image, 10);
-    ASSERT_NO_THROW(createHullImageSequential(image, 10));
+    generateBinaryImage(&image, 10, 10);
+    ASSERT_NO_THROW(createHullImageSequential(image, 10, 10));
 }
 
-TEST(CREATE_HULL_SEQUENTIAL, hull_created_correctly) {
+TEST(CREATE_HULL_SEQUENTIAL, can_create_hull_rectangular_image) {
+    std::vector<int> image(10 * 20);
+    generateBinaryImage(&image, 10, 20);
+    ASSERT_NO_THROW(createHullImageSequential(image, 10, 20));
+}
+
+TEST(CREATE_HULL_SEQUENTIAL, hull_created_correctly_in_square_image) {
     std::vector<int> image = { 1, 0, 1, 1,
                                0, 0, 1, 1,
                                1, 0, 0, 0,
                                1, 1, 1, 1 };
-    std::vector<std::vector<int>> expected_hull{ {0, 0, 0, 0},
-                                                 {0, 3, 1, 2},
-                                                 {2, 3, 3, 0} };
-    std::vector<std::vector<int>> hull = createHullImageSequential(image, 4);
+    std::vector<std::vector<int>> expected_hull{ {0},
+                                                 {6, 7, 3, 2, 6},
+                                                 {12, 13, 14, 15, 8, 12} };
+    std::vector<std::vector<int>> hull = createHullImageSequential(image, 4, 4);
 
 
     for (std::size_t i = 0; i < 3; i++) {
@@ -68,54 +79,86 @@ TEST(CREATE_HULL_SEQUENTIAL, hull_created_correctly) {
     }
 }
 
-TEST(CREATE_HULL_PARALLEL, can_create_hull) {
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+TEST(CREATE_HULL_SEQUENTIAL, hull_created_correctly_in_rectangular_image) {
+    std::vector<int> image = { 1, 0, 1, 1,
+                               0, 0, 1, 1,
+                               1, 1, 1, 1 };
+    std::vector<std::vector<int>> expected_hull{ {0},
+                                                 {8, 10, 11, 7, 3, 2, 8} };
+    std::vector<std::vector<int>> hull = createHullImageSequential(image, 3, 4);
 
-    std::size_t size_image = 15;
-    std::vector<int> image(size_image * size_image);
 
-    if (rank == 0) {
-        generateBinaryImage(&image, size_image);
+    for (std::size_t i = 0; i < 2; i++) {
+        EXPECT_EQ(expected_hull[i], hull[i]);
     }
-
-    ASSERT_NO_THROW(createHullImageParallel(image, size_image));
 }
 
-TEST(CREATE_HULL_PARALLEL, hull_created_correctly_with_image_even_size) {
+TEST(CREATE_HULL_PARALLEL, can_create_hull_squre_image) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    std::size_t size_image = 8;
-    std::vector<int> image(size_image * size_image);
+    std::size_t count_row = 15;
+    std::size_t count_colums = 15;
+    std::vector<int> image(count_row * count_colums);
 
     if (rank == 0) {
-        generateBinaryImage(&image, size_image);
+        generateBinaryImage(&image, count_row, count_colums);
     }
 
-    auto parallel_res = createHullImageParallel(image, size_image);
+    ASSERT_NO_THROW(createHullImageParallel(image, count_row, count_colums));
+}
+
+TEST(CREATE_HULL_PARALLEL, can_create_hull_rectangular_image) {
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    std::size_t count_row = 15;
+    std::size_t count_colums = 20;
+    std::vector<int> image(count_row * count_colums);
 
     if (rank == 0) {
-        auto sequential_res = createHullImageSequential(image, size_image);
+        generateBinaryImage(&image, count_row, count_colums);
+    }
+
+    ASSERT_NO_THROW(createHullImageParallel(image, count_row, count_colums));
+}
+
+TEST(CREATE_HULL_PARALLEL, hull_created_correctly_with_square_image) {
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    std::size_t count_row = 15;
+    std::size_t count_colums = 15;
+    std::vector<int> image(count_row * count_colums);
+
+    if (rank == 0) {
+        generateBinaryImage(&image, count_row, count_colums);
+    }
+
+    auto parallel_res = createHullImageParallel(image, count_row, count_colums);
+
+    if (rank == 0) {
+        auto sequential_res = createHullImageSequential(image, count_row, count_colums);
         EXPECT_EQ(parallel_res, sequential_res);
     }
 }
 
-TEST(CREATE_HULL_PARALLEL, hull_created_correctly_with_image_odd_size) {
+TEST(CREATE_HULL_PARALLEL, hull_created_correctly_with_rectangular_image) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    std::size_t size_image = 15;
-    std::vector<int> image(size_image * size_image);
+    std::size_t count_row = 15;
+    std::size_t count_colums = 20;
+    std::vector<int> image(count_row * count_colums);
 
     if (rank == 0) {
-        generateBinaryImage(&image, size_image);
+        generateBinaryImage(&image, count_row, count_colums);
     }
 
-    auto parallel_res = createHullImageParallel(image, size_image);
+    auto parallel_res = createHullImageParallel(image, count_row, count_colums);
 
     if (rank == 0) {
-        auto sequential_res = createHullImageSequential(image, size_image);
+        auto sequential_res = createHullImageSequential(image, count_row, count_colums);
         EXPECT_EQ(parallel_res, sequential_res);
     }
 }
@@ -124,20 +167,21 @@ TEST(CREATE_HULL_PARALLEL, hull_created_correctly_with_image_odd_size) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    std::size_t size_image = 1024;
-    std::vector<int> image(size_image * size_image);
+    std::size_t count_row = 3048;
+    std::size_t count_column = 3048;
+    std::vector<int> image(count_row * count_column);
 
     if (rank == 0) {
-        generateBinaryImage(&image, size_image);
+        generateBinaryImage(&image, count_row, count_column);
     }
 
     auto launch_parallel = MPI_Wtime();
-    auto parallel_res = createHullImageParallel(image, size_image);
+    auto parallel_res = createHullImageParallel(image, count_row, count_column);
     auto finish_parallel = MPI_Wtime();
 
     if (rank == 0) {
         auto launch_sequential = MPI_Wtime();
-        auto sequential_res = createHullImageSequential(image, size_image);
+        auto sequential_res = createHullImageSequential(image, count_row, count_column);
         auto finish_sequential = MPI_Wtime();
 
         auto parallel_time = finish_parallel - launch_parallel;
