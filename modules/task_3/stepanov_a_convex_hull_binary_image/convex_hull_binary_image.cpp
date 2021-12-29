@@ -150,22 +150,8 @@ std::vector<int> createHullComponent(std::vector<int> points,
     return hull;
 }
 
-std::pair<int,int> getExtremums(std::vector<int>::iterator begin, std::vector<int>::iterator end) {
-    std::pair<int, int> extremums = { *begin, *begin };
-
-    for (auto iter = begin + 1; iter < end; iter++) {
-        if (*iter < extremums.first)
-            extremums.first = *iter;
-
-        if (*iter > extremums.second)
-            extremums.second = *iter;
-    }
-
-    return extremums;
-}
-
 std::vector<std::vector<int>> createHullImageParallel(const std::vector<int>& image,
-    std::size_t count_rows, std::size_t count_columns) {    
+    std::size_t count_rows, std::size_t count_columns) {  
     int size, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);

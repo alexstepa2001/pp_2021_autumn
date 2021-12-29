@@ -23,8 +23,6 @@ std::vector<int> createHullComponent(std::vector<int> points,
 std::vector<std::vector<int>> createHullImageSequential(const std::vector<int>& image,
     std::size_t count_rows, std::size_t count_columns);
 
-std::pair<int,int> getExtremums(std::vector<int>::iterator begin, std::vector<int>::iterator end);
-
 std::vector<std::vector<int>> createHullImageParallel(const std::vector<int>& image,
     std::size_t count_rows, std::size_t count_columns);
 
