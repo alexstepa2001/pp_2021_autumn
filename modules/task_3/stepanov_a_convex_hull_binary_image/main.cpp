@@ -167,8 +167,8 @@ TEST(CREATE_HULL_PARALLEL, hull_created_correctly_with_rectangular_image) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    std::size_t count_row = 3048;
-    std::size_t count_column = 3048;
+    std::size_t count_row = 4096;
+    std::size_t count_column = 4096;
     std::vector<int> image(count_row * count_column);
 
     if (rank == 0) {
